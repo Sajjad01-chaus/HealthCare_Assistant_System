@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+*.db
+
+# Node
+node_modules/
+dist/
+.env.local
+
+myvenv/
+myvenv
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Audio files (generated)
+backend/audio_files/*.webm
+backend/audio_files/*.wav
+backend/audio_files/*.mp3
+backend/myvenv/
+frontend/node_modules/
+frontend/dist/
+backend/.env
+backend/healthcare_translator.db
+
