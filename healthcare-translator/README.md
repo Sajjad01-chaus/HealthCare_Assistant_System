@@ -1,15 +1,15 @@
 # 🏥 MediTranslate — Healthcare Doctor-Patient Translation App
 
-> Real-time AI-powered translation bridge between doctors and patients, breaking language barriers in healthcare.
+> Real-time AI-powered translation bridge between doctors and patients, featuring voice input/output, medical-context-aware translation, and intelligent clinical summarization.
 
-**🔗 Live Demo:** [your-deployed-link-here]  
-**📂 Repository:** [your-github-link-here]
+**🔗 Live Demo:** https://health-care-assistant-system.vercel.app  
+**📂 Repository:** https://github.com/Sajjad01-chaus/HealthCare_Assistant_System/
 
 ---
 
 ## 📌 Project Overview
 
-MediTranslate is a full-stack web application that enables real-time communication between doctors and patients who speak different languages. It supports text chat, voice messages (with automatic transcription), AI-powered translation, conversation persistence, keyword search, and intelligent medical summarization.
+MediTranslate is a full-stack web application that enables real-time communication between doctors and patients who speak different languages. It features a complete **multimodal voice pipeline** — doctors and patients can speak in their language and the other person **hears** the translation spoken aloud. The app also supports text chat, conversation persistence, keyword search, and intelligent medical summarization.
 
 Built for the Pre-Interview Take-Home Assignment — designed and developed within a **12-hour** time constraint.
 
@@ -20,18 +20,64 @@ Built for the Pre-Interview Take-Home Assignment — designed and developed with
 | # | Feature | Status | Details |
 |---|---------|--------|---------|
 | 1 | **Real-Time Translation** | ✅ Complete | WebSocket-based instant translation between Doctor ↔ Patient |
-| 2 | **Text Chat Interface** | ✅ Complete | Clean WhatsApp-style UI with role-based message bubbles |
-| 3 | **Audio Recording & Storage** | ✅ Complete | Browser-based recording → Whisper transcription → translation → playable in chat |
+| 2 | **Text Chat Interface** | ✅ Complete | WhatsApp-style UI with role-based message bubbles |
+| 3 | **Voice Input + Audio Output** | ✅ Complete | Record → Transcribe → Translate → **Speak translated audio to listener** |
 | 4 | **Conversation Logging** | ✅ Complete | All messages persisted in PostgreSQL with timestamps |
 | 5 | **Conversation Search** | ✅ Complete | Keyword search across messages with highlighted context |
 | 6 | **AI Medical Summary** | ✅ Complete | Structured extraction of symptoms, diagnoses, medications, follow-ups |
 
 ### Bonus Features
-- 🔗 **Shareable Room Links** — Doctor can share a URL for the patient to join
-- 🌐 **20 Languages Supported** — Including Hindi, Bengali, Tamil, Telugu, Urdu, Arabic, etc.
+- 🔊 **Text-to-Speech Output** — Translations are spoken aloud via Edge-TTS / gTTS neural voices
+- 🔊 **Auto-Speak Toggle** — Incoming translations auto-play as audio for hands-free operation
+- 🔗 **Shareable Room Links** — Doctor shares a URL for the patient to join the same room
+- 🌐 **20 Languages Supported** — English, Hindi, Bengali, Tamil, Telugu, Urdu, Chinese, Korean, Japanese, Arabic, Spanish, French, German, Portuguese, Russian, Italian, Dutch, Thai, Vietnamese, Turkish
 - 🎯 **Role Toggle** — Switch between Doctor/Patient view on the same device
 - 📱 **Mobile-Responsive UI** — Works on phones and tablets
 - 🗣️ **Auto Language Detection** — Whisper auto-detects the spoken language
+- 🩺 **Role-Aware Translation** — Doctor messages preserve medical terminology; Patient messages use simple language
+
+---
+
+## 🔊 Voice Pipeline — The Key Differentiator
+
+MediTranslate lets participants **hear** the translation — critical in a clinical setting where a patient may not be able to read a screen.
+
+```
+Doctor speaks Korean 🎤
+    │
+    ▼
+Browser records audio (WebM)
+    │
+    ▼
+Groq Whisper large-v3 → Transcribes: "환자가 두통이 있습니다"
+    │
+    ▼
+Groq Llama 3.3 70B → Translates to Chinese: "患者头痛"
+    │                   (medical-context-aware, role-adapted)
+    ▼
+Edge-TTS / gTTS → Generates Chinese audio
+    │
+    ▼
+WebSocket broadcasts to room:
+    → Patient SEES: Korean original + Chinese translation
+    → Patient HEARS: Chinese audio auto-plays 🔊
+```
+
+### Three-Layer Audio Fallback
+1. **Primary:** Server-side Edge-TTS (high-quality Microsoft neural voices)
+2. **Fallback:** Google TTS (gTTS) if Edge-TTS fails
+3. **Manual:** Click 🔊 button on any message to hear it
+
+### Doctor vs Patient Voices
+Each language has distinct voices so participants can distinguish who is speaking:
+
+| Language | Patient Voice | Doctor Voice |
+|----------|--------------|--------------|
+| English | Jenny (female) | Guy (male) |
+| Hindi | Swara (female) | Madhur (male) |
+| Chinese | Xiaoxiao (female) | Yunxi (male) |
+| Korean | SunHi (female) | InJoon (male) |
+| *...and 16 more* | | |
 
 ---
 
@@ -43,17 +89,18 @@ Built for the Pre-Interview Take-Home Assignment — designed and developed with
 | **Backend** | FastAPI (Python) | Async-native, WebSocket support, fast development |
 | **Database** | SQLite (dev) → PostgreSQL (prod) | Zero-config locally, production-ready on Render |
 | **Real-Time** | WebSockets (native FastAPI) | True bidirectional communication, no polling overhead |
-| **Translation** | Groq API — Llama 3.3 70B | Blazing fast inference (276 tok/s), free tier, strong multilingual support |
-| **Speech-to-Text** | Groq API — Whisper large-v3 | Fastest Whisper available, multilingual, same API key |
+| **Translation** | Groq API — Llama 3.3 70B | Blazing fast inference (276 tok/s), reliable free tier, strong multilingual |
+| **Speech-to-Text** | Groq API — Whisper large-v3 | Fastest Whisper endpoint available, multilingual, same API key |
+| **Text-to-Speech** | Edge-TTS + gTTS fallback | Free neural voices, 20+ languages, distinct doctor/patient voices |
 | **Medical Summary** | Groq API — Llama 3.3 70B | Strong reasoning for structured medical extraction |
-| **Deployment** | Render (backend) + Vercel (frontend) | Free tier, easy CI/CD |
+| **Deployment** | Render (backend) + Vercel (frontend) | Free tier, easy CI/CD, WebSocket support |
 
 ### Why Groq + Llama 3.3 for Translation?
 
 After researching current LLM translation benchmarks (Feb 2026):
-- **Qwen-MT (Turbo)** is the current best-in-class translation model (92 languages, $0.5/M tokens) but requires Alibaba Cloud setup — too much overhead for a 12-hour sprint
-- **Gemini 2.5 Flash** excels at Indian languages but free tier was slashed in Dec 2025 (5 RPM, 100 RPD) — risky for demo evaluation
-- **Llama 3.3 70B on Groq** offers strong multilingual capabilities, 276 tokens/second inference speed, and a reliable free tier — optimal for demo stability + speed
+- **Qwen-MT (Turbo)** — best-in-class translation model (92 languages) but requires Alibaba Cloud setup, too much overhead for a 12-hour sprint
+- **Gemini 2.5 Flash** — excels at Indian languages but free tier was slashed in Dec 2025 (10 RPM, 250 RPD), risky for demo evaluation
+- **Llama 3.3 70B on Groq** — strong multilingual capabilities, 276 tokens/second inference, reliable free tier. Optimal for demo stability + speed
 
 The key differentiator is **medical-context-aware prompts** — the system uses role-aware translation that preserves medical terminology accuracy while adapting complexity for patient vs. doctor communication.
 
@@ -64,7 +111,8 @@ The key differentiator is **medical-context-aware prompts** — the system uses 
 | Tool | How I Used It |
 |------|---------------|
 | **Claude (Anthropic)** | Architecture planning, code generation assistance, research on translation LLMs |
-| **Groq API** | Core AI provider for translation, transcription, and summarization |
+| **Groq API** | Core AI provider for translation (Llama 3.3), transcription (Whisper), and summarization |
+| **Edge-TTS + gTTS** | Neural text-to-speech for translated audio output |
 | **GitHub Copilot** | Code autocompletion during development |
 | **Tailwind CSS docs** | UI styling reference |
 | **FastAPI docs** | WebSocket implementation reference |
@@ -74,26 +122,45 @@ The key differentiator is **medical-context-aware prompts** — the system uses 
 ## 🏗️ Architecture
 
 ```
-┌──────────────────────────────────────────────┐
-│         FRONTEND (React + Vite + Tailwind)    │
-│  Role Toggle · Chat UI · Audio Recorder       │
-│  Search Modal · Summary Panel                 │
-└────────────┬───────────┬─────────────────────┘
+┌───────────────────────────────────────────────────┐
+│         FRONTEND (React + Vite + Tailwind)         │
+│  Role Toggle · Chat UI · Audio Recorder            │
+│  Auto-Speak Toggle · TTS Playback                  │
+│  Search Modal · Summary Panel · Share Link         │
+└────────────┬───────────┬──────────────────────────┘
              │ WebSocket │ REST API
-┌────────────▼───────────▼─────────────────────┐
-│            BACKEND (FastAPI)                   │
-│  /ws/{id}           Real-time messaging        │
-│  /api/conversations  CRUD operations           │
-│  /api/audio          Upload → Whisper → Store  │
-│  /api/search         Keyword search            │
-│  /api/summary        Medical AI summary        │
-└──────────────────┬───────────────────────────┘
-                   │
-            ┌──────▼──────┐     ┌─────────────┐
-            │ PostgreSQL   │     │  Groq API    │
-            │ (Messages,   │     │  Llama 3.3   │
-            │  History)    │     │  Whisper v3   │
-            └─────────────┘     └─────────────┘
+┌────────────▼───────────▼──────────────────────────┐
+│              BACKEND (FastAPI)                     │
+│  /ws/{id}            Real-time messaging + TTS     │
+│  /api/conversations   CRUD operations              │
+│  /api/audio           Voice pipeline:              │
+│                       Record → Whisper → Translate │
+│                       → TTS → Broadcast            │
+│  /api/tts             Standalone TTS endpoint      │
+│  /api/search          Keyword search               │
+│  /api/summary         Medical AI summary           │
+│  /api/health          Service health check         │
+└──────┬──────────┬──────────┬──────────────────────┘
+       │          │          │
+┌──────▼─────┐ ┌──▼────────┐ ┌▼──────────────┐
+│ PostgreSQL  │ │ Groq API  │ │ Edge-TTS/gTTS │
+│ (Messages,  │ │ Llama 3.3 │ │ (Neural       │
+│  Summaries, │ │ Whisper   │ │  Voices)      │
+│  History)   │ │ large-v3  │ │               │
+└────────────┘ └───────────┘ └───────────────┘
+```
+
+### Data Flow: Text Message
+```
+User types message → WebSocket → Llama 3.3 translates
+  → Edge-TTS generates audio → Store in DB → Broadcast to room
+```
+
+### Data Flow: Voice Message
+```
+User records audio → Upload → Whisper transcribes → Llama 3.3 translates
+  → Edge-TTS generates speech in target language → Store in DB
+  → Broadcast original audio + transcription + translation + TTS audio
 ```
 
 ---
@@ -124,12 +191,6 @@ uvicorn main:app --reload --port 8000
 ```bash
 cd frontend
 npm install
-
-# Create .env file
-cp .env.example .env.local
-# Set VITE_API_URL if backend is not on localhost:8000
-
-# Run the dev server
 npm run dev
 ```
 
@@ -141,11 +202,11 @@ Open `http://localhost:5173` — you're ready to go!
 
 | Limitation | Reason | Potential Fix |
 |-----------|--------|---------------|
-| Audio files stored locally | File storage not on cloud (S3/Cloudinary) in 12hr | Integrate S3 or Cloudinary for production |
+| Audio files stored locally | No cloud storage (S3) in 12hr sprint | Integrate S3 or Cloudinary |
 | No user authentication | Focused on core features within time limit | Add JWT auth with role-based access |
-| Translation accuracy for rare languages | Llama 3.3 is strongest in top-20 languages | Add Qwen-MT or Gemini as fallback for specific language pairs |
-| No real-time typing indicator | WebSocket supports it but not implemented in UI | Add "typing..." event broadcasting |
-| Summary doesn't persist audio analysis | Audio is transcribed then treated as text | Could analyze audio tone/urgency directly |
+| Translation accuracy varies | Llama 3.3 strongest in top-20 languages | Add specialized models as fallback |
+| Browser may block autoplay | Browser security policy | Click any 🔊 button once to enable |
+| Render free tier cold starts | First request after 15min idle takes ~50s | Use UptimeRobot to keep warm |
 
 ---
 
@@ -154,20 +215,21 @@ Open `http://localhost:5173` — you're ready to go!
 ```
 healthcare-translator/
 ├── backend/
-│   ├── main.py              # FastAPI app entry point
-│   ├── database.py          # SQLAlchemy connection
-│   ├── models.py            # Database models
-│   ├── schemas.py           # Pydantic schemas + language list
-│   ├── ws_manager.py        # WebSocket connection manager
+│   ├── main.py                  # FastAPI app entry point
+│   ├── database.py              # SQLAlchemy connection
+│   ├── models.py                # Database models
+│   ├── schemas.py               # Pydantic schemas + 20 languages
+│   ├── ws_manager.py            # WebSocket room-based connection manager
 │   ├── routers/
-│   │   ├── conversations.py # Conversation CRUD
-│   │   ├── messages.py      # Message send/receive
-│   │   ├── audio.py         # Audio upload + transcription
-│   │   ├── summary.py       # AI medical summary
-│   │   ├── search.py        # Conversation search
-│   │   └── websocket.py     # Real-time WebSocket handler
+│   │   ├── conversations.py     # Conversation CRUD
+│   │   ├── messages.py          # Message send/receive with translation
+│   │   ├── audio.py             # Voice pipeline: Record → STT → Translate → TTS
+│   │   ├── summary.py           # AI medical summary
+│   │   ├── search.py            # Keyword search
+│   │   └── websocket.py         # Real-time WebSocket handler with TTS
 │   ├── services/
-│   │   └── groq_service.py  # All Groq AI integration
+│   │   ├── groq_service.py      # Groq: Llama translation + Whisper STT + Summaries
+│   │   └── tts_service.py       # Edge-TTS + gTTS fallback (20 languages)
 │   ├── requirements.txt
 │   └── .env.example
 ├── frontend/
@@ -187,8 +249,8 @@ healthcare-translator/
 │   ├── package.json
 │   ├── vite.config.js
 │   └── tailwind.config.js
-├── render.yaml              # Render deployment config
-├── vercel.json              # Vercel deployment config
+├── render.yaml
+├── vercel.json
 ├── .gitignore
 └── README.md
 ```
@@ -197,4 +259,4 @@ healthcare-translator/
 
 ## 📝 License
 
-Built for assessment purposes. Not intended for production medical use.
+Built for assessment purposes. Not intended for production medical use without proper regulatory compliance.
