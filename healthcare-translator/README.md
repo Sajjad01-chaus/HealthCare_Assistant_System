@@ -257,6 +257,3 @@ healthcare-translator/
 
 ---
 
-## 📝 License
-
-Built for assessment purposes. Not intended for production medical use without proper regulatory compliance.
