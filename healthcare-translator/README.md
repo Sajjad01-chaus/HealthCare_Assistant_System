@@ -11,7 +11,6 @@
 
 MediTranslate is a full-stack web application that enables real-time communication between doctors and patients who speak different languages. It features a complete **multimodal voice pipeline** — doctors and patients can speak in their language and the other person **hears** the translation spoken aloud. The app also supports text chat, conversation persistence, keyword search, and intelligent medical summarization.
 
-Built for the Pre-Interview Take-Home Assignment — designed and developed within a **12-hour** time constraint.
 
 ---
 
